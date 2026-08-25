@@ -2,15 +2,11 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Web AR</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+  <title>AR Truk</title>
 
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
   <style>
@@ -20,16 +16,12 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-    }
-
-    body {
       background: #000;
     }
 
     #ar-container {
       width: 100%;
       height: 100%;
-      position: relative;
     }
   </style>
 </head>
@@ -46,9 +38,7 @@ const container =
 const mindarThree =
   new MindARThree({
     container: container,
-
-    imageTargetSrc:
-      "./targets.mind"
+    imageTargetSrc: "./targets.mind"
   });
 
 const {
@@ -58,9 +48,9 @@ const {
 } = mindarThree;
 
 
-// --------------------------
+// ==========================
 // LIGHT
-// --------------------------
+// ==========================
 
 const light =
   new THREE.HemisphereLight(
@@ -72,43 +62,117 @@ const light =
 scene.add(light);
 
 
-// --------------------------
-// AR OBJECT
-// --------------------------
+// ==========================
+// VIDEO
+// ==========================
 
-const geometry =
-  new THREE.PlaneGeometry(
-    1,
-    1
-  );
+const video =
+  document.createElement("video");
 
-const material =
+video.src = "./animasi-truk.mp4";
+
+video.loop = true;
+video.muted = true;
+video.playsInline = true;
+
+video.setAttribute(
+  "playsinline",
+  ""
+);
+
+video.setAttribute(
+  "webkit-playsinline",
+  ""
+);
+
+
+// ==========================
+// VIDEO TEXTURE
+// ==========================
+
+const videoTexture =
+  new THREE.VideoTexture(video);
+
+videoTexture.colorSpace =
+  THREE.SRGBColorSpace;
+
+
+// ==========================
+// VIDEO MATERIAL
+// ==========================
+
+const videoMaterial =
   new THREE.MeshBasicMaterial({
-    color: 0xff0000,
-    transparent: true,
-    opacity: 0.7
+    map: videoTexture,
+    transparent: true
   });
 
-const plane =
+
+// ==========================
+// VIDEO PLANE
+// ==========================
+
+const videoGeometry =
+  new THREE.PlaneGeometry(
+    1,
+    0.5625
+  );
+
+const videoMesh =
   new THREE.Mesh(
-    geometry,
-    material
+    videoGeometry,
+    videoMaterial
   );
 
 
-// --------------------------
-// TARGET
-// --------------------------
+// ==========================
+// TARGET ANCHOR
+// ==========================
 
 const anchor =
   mindarThree.addAnchor(0);
 
-anchor.group.add(plane);
+anchor.group.add(videoMesh);
 
 
-// --------------------------
+// ==========================
+// TARGET FOUND
+// ==========================
+
+anchor.onTargetFound = () => {
+
+  console.log("TARGET DITEMUKAN");
+
+  video.currentTime = 0;
+
+  video.play().catch(
+    error => {
+      console.log(
+        "Video gagal diputar:",
+        error
+      );
+    }
+  );
+
+};
+
+
+// ==========================
+// TARGET LOST
+// ==========================
+
+anchor.onTargetLost = () => {
+
+  console.log("TARGET HILANG");
+
+  video.pause();
+
+};
+
+
+// ==========================
 // START AR
-// --------------------------
+// ==========================
 
 async function startAR() {
 
