@@ -84,8 +84,7 @@ const container = document.getElementById("ar-container");
 const startButton = document.getElementById("start");
 const status = document.getElementById("status");
 
-// Cari kelas MindARThree dari beberapa kemungkinan bentuk export,
-// supaya tidak lagi muncul "MindARThree is not defined".
+// Cari kelas MindARThree dari beberapa kemungkinan bentuk export.
 function resolveMindARThree() {
   if (MindARImageThree && typeof MindARImageThree.MindARThree === "function") {
     return MindARImageThree.MindARThree;
@@ -112,6 +111,8 @@ startButton.addEventListener("click", async () => {
     }
 
     // Inisialisasi MindAR
+    // "targets.mind" adalah SATU file yang bisa berisi banyak gambar target
+    // (hasil compile ulang di https://hiukim.github.io/mind-ar-js-doc/tools/compile)
     const mindarThree = new MindARThree({
       container: container,
       imageTargetSrc: "./targets.mind"
@@ -119,38 +120,88 @@ startButton.addEventListener("click", async () => {
 
     const { renderer, scene, camera } = mindarThree;
 
-    // LIGHT
+    // LIGHT (cukup satu untuk semua objek, tidak perlu diulang per target)
     const light = new THREE.HemisphereLight(0xffffff, 0xbbbbbb, 3);
     scene.add(light);
 
-    // VIDEO
-    const video = document.createElement("video");
-    video.src = "./animasi-truk.mp4";
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-    video.setAttribute("playsinline", "");
 
-    // VIDEO TEXTURE & MATERIAL
-    const texture = new THREE.VideoTexture(video);
-    const material = new THREE.MeshBasicMaterial({ map: texture });
-    const geometry = new THREE.PlaneGeometry(1, 0.5625);
-    const videoMesh = new THREE.Mesh(geometry, material);
+    /* =========================================================
+       ============  TARGET 0  (gambar target ke-1)  ===========
+       ========================================================= */
 
-    // TARGET ANCHOR
-    const anchor = mindarThree.addAnchor(0);
-    anchor.group.add(videoMesh);
+    const video0 = document.createElement("video");
+    video0.src = "./animasi-truk.mp4";
+    video0.loop = true;
+    video0.muted = true;
+    video0.playsInline = true;
+    video0.setAttribute("playsinline", "");
 
-    anchor.onTargetFound = () => {
+    const texture0 = new THREE.VideoTexture(video0);
+    const material0 = new THREE.MeshBasicMaterial({ map: texture0 });
+    const geometry0 = new THREE.PlaneGeometry(1, 0.5625);
+    const videoMesh0 = new THREE.Mesh(geometry0, material0);
+
+    const anchor0 = mindarThree.addAnchor(0); // index 0 = gambar pertama saat compile
+    anchor0.group.add(videoMesh0);
+
+    anchor0.onTargetFound = () => {
       status.innerText = "TARGET DITEMUKAN";
-      video.currentTime = 0;
-      video.play().catch(() => {});
+      video0.currentTime = 0;
+      video0.play().catch(() => {});
     };
 
-    anchor.onTargetLost = () => {
+    anchor0.onTargetLost = () => {
       status.innerText = "Arahkan kamera ke gambar target";
-      video.pause();
+      video0.pause();
     };
+
+
+    /* =========================================================
+       ===========  TEMPAT MENAMBAH TARGET BARU  ================
+       -----------------------------------------------------------
+       Belum dipakai sekarang, tapi kalau nanti kamu compile ulang
+       targets.mind dengan gambar ke-2, ke-3, dst, tinggal salin
+       (copy-paste) blok "TARGET 0" di atas persis ke bawah sini,
+       lalu ganti 3 hal berikut di setiap salinannya:
+
+         1. Semua nama variabel "video0/texture0/material0/
+            geometry0/videoMesh0/anchor0"  ->  ganti angka 0
+            jadi 1 (lalu 2, 3, dst untuk target selanjutnya)
+         2. Isi "src" video/objeknya -> sesuai aset target itu
+         3. Angka di dalam addAnchor(0) -> ganti jadi urutan
+            gambar itu saat di-compile (0 = foto pertama,
+            1 = foto kedua, 2 = foto ketiga, dst)
+
+       Contoh kerangka kosongnya (tinggal isi & lepas komentar):
+
+       // const video1 = document.createElement("video");
+       // video1.src = "./animasi-mobil.mp4";
+       // video1.loop = true;
+       // video1.muted = true;
+       // video1.playsInline = true;
+       // video1.setAttribute("playsinline", "");
+       //
+       // const texture1 = new THREE.VideoTexture(video1);
+       // const material1 = new THREE.MeshBasicMaterial({ map: texture1 });
+       // const geometry1 = new THREE.PlaneGeometry(1, 0.5625);
+       // const videoMesh1 = new THREE.Mesh(geometry1, material1);
+       //
+       // const anchor1 = mindarThree.addAnchor(1);
+       // anchor1.group.add(videoMesh1);
+       //
+       // anchor1.onTargetFound = () => {
+       //   status.innerText = "TARGET 2 DITEMUKAN";
+       //   video1.currentTime = 0;
+       //   video1.play().catch(() => {});
+       // };
+       //
+       // anchor1.onTargetLost = () => {
+       //   status.innerText = "Arahkan kamera ke gambar target";
+       //   video1.pause();
+       // };
+
+       ========================================================= */
+
 
     // MULAI KAMERA
     await mindarThree.start();
