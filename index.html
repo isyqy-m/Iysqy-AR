@@ -6,61 +6,64 @@
 
   <title>AR Truk</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     html,
     body {
       margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #111;
     }
 
     #ar-container {
       position: fixed;
       inset: 0;
+      width: 100%;
+      height: 100%;
     }
 
     #start {
       position: fixed;
-      z-index: 9999;
+      z-index: 99999;
+
       left: 50%;
       top: 50%;
+
       transform: translate(-50%, -50%);
 
-      border: 0;
-      border-radius: 14px;
-      padding: 16px 26px;
+      padding: 16px 28px;
 
-      background: #fff;
+      border: none;
+      border-radius: 14px;
+
+      background: white;
       color: #111;
 
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 17px;
+      font-weight: bold;
     }
 
     #status {
       position: fixed;
-      z-index: 9999;
+      z-index: 99999;
+
       left: 50%;
       bottom: 30px;
+
       transform: translateX(-50%);
 
-      color: #fff;
-      background: rgba(0,0,0,.65);
-
       padding: 10px 16px;
+
       border-radius: 10px;
 
+      background: rgba(0,0,0,.7);
+      color: white;
+
       font-size: 14px;
-      text-align: center;
+
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -70,12 +73,20 @@
 <div id="ar-container"></div>
 
 <button id="start">
-  Mulai AR
+  MULAI AR
 </button>
 
 <div id="status">
-  Tekan Mulai AR
+  Tekan MULAI AR
 </div>
+
+
+<!-- THREE.JS -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.137.5/build/three.min.js"></script>
+
+<!-- MINDAR -->
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+
 
 <script>
 
@@ -89,187 +100,203 @@ const status =
   document.getElementById("status");
 
 
-const mindarThree =
-  new MindARThree({
-    container: container,
-    imageTargetSrc: "./targets.mind"
-  });
+let mindarThree;
 
 
-const renderer =
-  mindarThree.renderer;
+// ====================================
+// MULAI AR
+// ====================================
 
-const scene =
-  mindarThree.scene;
+startButton.onclick = async function () {
 
-const camera =
-  mindarThree.camera;
-
-
-// ============================
-// LIGHT
-// ============================
-
-const light =
-  new THREE.HemisphereLight(
-    0xffffff,
-    0xbbbbbb,
-    3
-  );
-
-scene.add(light);
-
-
-// ============================
-// VIDEO
-// ============================
-
-const video =
-  document.createElement("video");
-
-video.src = "./animasi-truk.mp4";
-
-video.loop = true;
-video.muted = true;
-video.playsInline = true;
-
-video.setAttribute(
-  "playsinline",
-  ""
-);
-
-video.setAttribute(
-  "webkit-playsinline",
-  ""
-);
-
-
-// ============================
-// VIDEO TEXTURE
-// ============================
-
-const texture =
-  new THREE.VideoTexture(video);
-
-texture.colorSpace =
-  THREE.SRGBColorSpace;
-
-
-// ============================
-// VIDEO MATERIAL
-// ============================
-
-const material =
-  new THREE.MeshBasicMaterial({
-    map: texture
-  });
-
-
-// ============================
-// VIDEO OBJECT
-// ============================
-
-const geometry =
-  new THREE.PlaneGeometry(
-    1,
-    0.5625
-  );
-
-const videoMesh =
-  new THREE.Mesh(
-    geometry,
-    material
-  );
-
-
-// ============================
-// TARGET
-// ============================
-
-const anchor =
-  mindarThree.addAnchor(0);
-
-anchor.group.add(videoMesh);
-
-
-// ============================
-// TARGET FOUND
-// ============================
-
-anchor.onTargetFound = () => {
+  startButton.style.display = "none";
 
   status.innerText =
-    "Target ditemukan";
+    "Memuat AR...";
 
-  video.currentTime = 0;
+  try {
 
-  video.play().catch(() => {});
+    mindarThree =
+      new MindARThree({
+        container: container,
 
-};
-
-
-// ============================
-// TARGET LOST
-// ============================
-
-anchor.onTargetLost = () => {
-
-  status.innerText =
-    "Arahkan kamera ke gambar target";
-
-  video.pause();
-
-};
+        imageTargetSrc:
+          "./targets.mind"
+      });
 
 
-// ============================
-// START AR
-// ============================
+    const renderer =
+      mindarThree.renderer;
 
-startButton.addEventListener(
-  "click",
-  async () => {
+    const scene =
+      mindarThree.scene;
 
-    startButton.style.display =
-      "none";
+    const camera =
+      mindarThree.camera;
 
-    status.innerText =
-      "Memulai kamera...";
 
-    try {
+    // ====================================
+    // LIGHT
+    // ====================================
 
-      await mindarThree.start();
+    const light =
+      new THREE.HemisphereLight(
+        0xffffff,
+        0xbbbbbb,
+        3
+      );
+
+    scene.add(light);
+
+
+    // ====================================
+    // VIDEO
+    // ====================================
+
+    const video =
+      document.createElement("video");
+
+    video.src =
+      "./animasi-truk.mp4";
+
+    video.loop = true;
+
+    video.muted = true;
+
+    video.playsInline = true;
+
+    video.setAttribute(
+      "playsinline",
+      ""
+    );
+
+
+    // ====================================
+    // VIDEO TEXTURE
+    // ====================================
+
+    const texture =
+      new THREE.VideoTexture(video);
+
+
+    // ====================================
+    // VIDEO MATERIAL
+    // ====================================
+
+    const material =
+      new THREE.MeshBasicMaterial({
+        map: texture
+      });
+
+
+    // ====================================
+    // VIDEO SIZE
+    // ====================================
+
+    const geometry =
+      new THREE.PlaneGeometry(
+        1,
+        0.5625
+      );
+
+
+    const videoMesh =
+      new THREE.Mesh(
+        geometry,
+        material
+      );
+
+
+    // ====================================
+    // TARGET
+    // ====================================
+
+    const anchor =
+      mindarThree.addAnchor(0);
+
+
+    anchor.group.add(
+      videoMesh
+    );
+
+
+    // ====================================
+    // TARGET DITEMUKAN
+    // ====================================
+
+    anchor.onTargetFound = function () {
+
+      status.innerText =
+        "TARGET DITEMUKAN";
+
+      video.currentTime = 0;
+
+      video.play().catch(
+        function () {}
+      );
+
+    };
+
+
+    // ====================================
+    // TARGET HILANG
+    // ====================================
+
+    anchor.onTargetLost = function () {
 
       status.innerText =
         "Arahkan kamera ke gambar target";
 
-      renderer.setAnimationLoop(() => {
+      video.pause();
+
+    };
+
+
+    // ====================================
+    // START MINDAR
+    // ====================================
+
+    status.innerText =
+      "Membuka kamera...";
+
+
+    await mindarThree.start();
+
+
+    status.innerText =
+      "Arahkan kamera ke gambar target";
+
+
+    renderer.setAnimationLoop(
+      function () {
 
         renderer.render(
           scene,
           camera
         );
 
-      });
+      }
+    );
 
-    } catch (error) {
 
-      console.error(error);
+  } catch (error) {
 
-      startButton.style.display =
-        "block";
+    console.error(error);
 
-      status.innerText =
-        "Kamera gagal dibuka";
+    startButton.style.display =
+      "block";
 
-      alert(
-        "Kamera gagal dibuka. Pastikan izin kamera untuk browser sudah diizinkan."
-      );
+    status.innerText =
+      "AR gagal dimulai";
 
-    }
+    alert(
+      "AR gagal dimulai: " +
+      error.message
+    );
 
   }
-);
+
+};
 
 </script>
 
