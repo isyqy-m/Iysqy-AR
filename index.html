@@ -2,76 +2,132 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
   <title>Web AR</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
 
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+  <style>
     html,
     body {
       margin: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
+    }
+
+    body {
       background: #000;
     }
 
-    #camera {
+    #ar-container {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-    }
-
-    #start {
-      position: fixed;
-      inset: 50% auto auto 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      padding: 16px 28px;
-      border: 0;
-      border-radius: 12px;
-      background: white;
-      color: #111;
-      font-size: 16px;
-      font-weight: 600;
+      position: relative;
     }
   </style>
 </head>
 
 <body>
 
-  <video id="camera" autoplay playsinline></video>
+<div id="ar-container"></div>
 
-  <button id="start">
-    Buka Kamera AR
-  </button>
+<script>
 
-  <script>
-    const video = document.getElementById("camera");
-    const start = document.getElementById("start");
+const container =
+  document.querySelector("#ar-container");
 
-    start.addEventListener("click", async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: {
-              ideal: "environment"
-            }
-          },
-          audio: false
-        });
+const mindarThree =
+  new MindARThree({
+    container: container,
 
-        video.srcObject = stream;
-        start.style.display = "none";
+    imageTargetSrc:
+      "./targets.mind"
+  });
 
-      } catch (error) {
-        alert("Kamera tidak dapat dibuka: " + error.message);
-      }
-    });
-  </script>
+const {
+  renderer,
+  scene,
+  camera
+} = mindarThree;
+
+
+// --------------------------
+// LIGHT
+// --------------------------
+
+const light =
+  new THREE.HemisphereLight(
+    0xffffff,
+    0xbbbbbb,
+    3
+  );
+
+scene.add(light);
+
+
+// --------------------------
+// AR OBJECT
+// --------------------------
+
+const geometry =
+  new THREE.PlaneGeometry(
+    1,
+    1
+  );
+
+const material =
+  new THREE.MeshBasicMaterial({
+    color: 0xff0000,
+    transparent: true,
+    opacity: 0.7
+  });
+
+const plane =
+  new THREE.Mesh(
+    geometry,
+    material
+  );
+
+
+// --------------------------
+// TARGET
+// --------------------------
+
+const anchor =
+  mindarThree.addAnchor(0);
+
+anchor.group.add(plane);
+
+
+// --------------------------
+// START AR
+// --------------------------
+
+async function startAR() {
+
+  await mindarThree.start();
+
+  renderer.setAnimationLoop(() => {
+
+    renderer.render(
+      scene,
+      camera
+    );
+
+  });
+
+}
+
+startAR();
+
+</script>
 
 </body>
 </html>
