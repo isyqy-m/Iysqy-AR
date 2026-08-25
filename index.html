@@ -63,6 +63,8 @@
       font-size: 14px;
       white-space: nowrap;
       pointer-events: none;
+      max-width: 90%;
+      text-align: center;
     }
   </style>
 </head>
@@ -74,17 +76,41 @@
 
 <script type="module">
 import * as THREE from "three";
-import { MindARThree } from "mindar-image-three";
+// Import bernama, DAN import namespace sebagai cadangan (fallback)
+// jika bundel CDN suatu saat tidak meng-expose named export "MindARThree".
+import * as MindARImageThree from "mindar-image-three";
 
 const container = document.getElementById("ar-container");
 const startButton = document.getElementById("start");
 const status = document.getElementById("status");
+
+// Cari kelas MindARThree dari beberapa kemungkinan bentuk export,
+// supaya tidak lagi muncul "MindARThree is not defined".
+function resolveMindARThree() {
+  if (MindARImageThree && typeof MindARImageThree.MindARThree === "function") {
+    return MindARImageThree.MindARThree;
+  }
+  if (typeof MindARImageThree.default === "function") {
+    return MindARImageThree.default;
+  }
+  if (window.MINDAR && window.MINDAR.IMAGE && typeof window.MINDAR.IMAGE.MindARThree === "function") {
+    return window.MINDAR.IMAGE.MindARThree;
+  }
+  return null;
+}
 
 startButton.addEventListener("click", async () => {
   startButton.style.display = "none";
   status.innerText = "Membuka kamera...";
 
   try {
+    const MindARThree = resolveMindARThree();
+    if (!MindARThree) {
+      throw new Error(
+        "Library MindAR gagal dimuat dari CDN (cek koneksi internet / cache browser)."
+      );
+    }
+
     // Inisialisasi MindAR
     const mindarThree = new MindARThree({
       container: container,
@@ -145,4 +171,3 @@ startButton.addEventListener("click", async () => {
 
 </body>
 </html>
-
